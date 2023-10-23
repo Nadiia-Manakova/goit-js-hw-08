@@ -1,40 +1,40 @@
+import throttle from 'lodash.throttle';
+const formEl = document.querySelector('.feedback-form');
+let userData = {};
 
-import throttle from "lodash.throttle";
-
-const formEl = document.querySelector(`.feedback-form`);
-
-formEl.addEventListener('input', onInput);
+formEl.addEventListener('input', throttle(onInput, 500));
 formEl.addEventListener('submit', onSubmit);
-window.addEventListener('load', onLoad)
+window.addEventListener('load', onLoad);
 
 const LOCAL_STORAGE_KEY = 'feedback-form-state';
-let formData = {};
 
-function onInput(evt) {
-    formData[evt.target.name] = evt.target.value.trim();
-    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(formData));
+function onInput(e) {
+  const target = e.target;
+  const formElValue = target.value;
+  const formElName = target.name;
+  userData[formElName] = formElValue;
+  localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(userData));
 }
 
-function onSubmit(evt) {
-    evt.preventDefault();
-    console.log(formData);
-    formData = {};
-    evt.target.reset();
-    localStorage.removeItem(LOCAL_STORAGE_KEY);
+function onSubmit(e) {
+  e.preventDefault();
+  console.log(userData);
+  userData = {};
+  e.target.reset();
+  localStorage.removeItem(LOCAL_STORAGE_KEY);
 }
 
 function onLoad() {
-    
-    try {
-        const data = localStorage.getItem(LOCAL_STORAGE_KEY);
-        formData = JSON.parse(data);
-        Object.entries(formData).forEach(([key, val]) => {
-            const element = formEl.elements[key];
-            if (element) {
-                element.value = val;
-            }
-        });
-    } catch (error) {
-        console.log(error.message);
+  try {
+    const data = localStorage.getItem(LOCAL_STORAGE_KEY);
+    if (!data) return;
+    userData = JSON.parse(data);
+    for (const key in userData) {
+      if (userData.hasOwnProperty(key)) {
+        formEl.elements[key].value = userData[key];
+      }
     }
+  } catch (error) {
+    console.log(error.message);
+  }
 }
